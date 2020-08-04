@@ -1,0 +1,43 @@
+[app]
+name = ggcode-python-api
+max_login_attempt = 3
+log_path = resources/logs/ggcode-python-api.log
+file_dir =
+file_url =
+
+[mysql]
+host = 127.0.0.1
+db = ggcode
+user = root
+password = 
+prefix =
+log_queries = true
+
+[mongodb]
+host = 127.0.0.1
+port = 27017
+db = ggcode
+
+[mongodb_history]
+host = 127.0.0.1
+port = 27017
+db = ggcode_history
+
+[redis]
+host = 127.0.0.1
+port = 6379
+prefix = ggcode_
+timeout = 43200
+
+[jwt]
+secret = kasfda0sdf809as8df9ausdofjaslkdfjalskdj
+token_exp = 1
+refresh_exp = 30
+algo = HS256
+blacklist_enabled = 1
+
+[blueprint_logs]
+# FILE_MAX_BYTES=50000000
+FILE_MAX_BYTES=5000000
+FILE_BACKUP_COUNT=5
+FILE_ENCODING=utf8

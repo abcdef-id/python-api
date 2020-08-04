@@ -1,0 +1,91 @@
+import configparser
+from datetime import timedelta, datetime
+
+cfg = configparser.ConfigParser()
+cfg.read('config.cfg')
+
+class Config():
+    APP_NAME = cfg['app']['name']
+    MAX_LOGIN_ATTEMPT = cfg['app']['max_login_attempt']
+    FILE_DIR = cfg['app']['file_dir']
+    FILE_URL = cfg['app']['file_url']
+
+    if cfg['mysql']['log_queries'].upper() == 'TRUE':
+        LOG_QUERY = True
+    else:
+        LOG_QUERY = False
+
+    MASTER_DATABASE = {
+        'driver': 'mysql',
+        'host': cfg['mysql']['host'],
+        'database': cfg['mysql']['db'],
+        'user': cfg['mysql']['user'],
+        'password': cfg['mysql']['password'],
+        'prefix': cfg['mysql']['prefix'],
+        'log_queries': LOG_QUERY
+    }
+    
+    ORATOR_DATABASES = {
+        'default': 'master',
+        'master': MASTER_DATABASE
+    }
+
+    MONGODB_HOST = cfg['mongodb']['host']
+    MONGODB_PORT = int(cfg['mongodb']['port'])
+    MONGODB_DB = cfg['mongodb']['db']
+
+    MONGODB_HISTORY_HOST = cfg['mongodb_history']['host']
+    MONGODB_HISTORY_PORT = int(cfg['mongodb_history']['port'])
+    MONGODB_HISTORY_DB = cfg['mongodb_history']['db']
+
+    # CACHE
+    CACHE_KEY_PREFIX = cfg['redis']['prefix']
+    CACHE_REDIS_HOST = cfg['redis']['host']
+    CACHE_REDIS_PORT = cfg['redis']['port']
+    CACHE_DEFAULT_TIMEOUT = cfg['redis']['timeout']
+
+    # JWT
+    JWT_SECRET_KEY = cfg['jwt']['secret']
+    JWT_ALGORITHM = cfg['jwt']['algo']
+    jwt_auth_expired_use_default= False
+
+    jwt_config_act={}
+    jwt_config_rte={}
+    timedelta_units=['weeks','days','hours','minutes','seconds','microseconds']
+
+    if 'token_access_exp_unit' in cfg['jwt'] and cfg['jwt']['token_access_exp_unit'] in timedelta_units:
+        jwt_config_act[cfg['jwt']['token_access_exp_unit']]=int(cfg['jwt']['token_exp'])
+    else:
+        jwt_config_act['days']=int(cfg['jwt']['token_exp'])
+
+    if 'token_refresh_exp_unit' in cfg['jwt'] and cfg['jwt']['token_refresh_exp_unit'] in timedelta_units:
+        jwt_config_rte[cfg['jwt']['token_refresh_exp_unit']]=int(cfg['jwt']['refresh_exp'])
+    else:
+        jwt_config_rte['days']=int(cfg['jwt']['refresh_exp'])
+
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(**jwt_config_act)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(**jwt_config_rte)
+
+
+    LOG_RESOURCE_PATH = cfg['app']['log_path']
+
+    # Blueprint config autoloader
+    BLUEPRINT = {}
+    fbpcf = [key for key, value in cfg.items() if 'blueprint_' in key.lower()]
+    if len(fbpcf) > 0:
+        for bp in fbpcf:
+            for k, v in cfg[bp].items():
+                kname = bp.replace('blueprint_', '').upper()
+                if kname not in BLUEPRINT:
+                    BLUEPRINT[kname] = {}
+                BLUEPRINT[kname][k.upper()] = v
+
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+class StagingConfig(Config):
+    DEBUG = False
+
+class DevelopmentConfig(Config):
+    DEBUG = True
